@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
-  Heart, TrendingUp, ChevronRight, Plus, Calendar, Clock,
-  Phone, Mail, Video, Globe, User, Info, Stethoscope,
+  Heart, TrendingUp, ChevronRight, ChevronLeft, Plus, Calendar, Clock,
+  Phone, Mail, Video, Globe, User, Info, Stethoscope, Zap, MessageCircle, Star,
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -37,6 +37,18 @@ const donutData = [
 
 const recruitBars = [65, 80, 55, 90, 70, 85, 60, 75, 88, 72, 68, 82];
 
+const doctors = [
+  { name: "dr. Rina Sari", specialty: "Dokter Umum", exp: "8 tahun pengalaman", photo: "/doctor-1.png", rating: 4.9, available: true },
+  { name: "dr. Budi Hartono", specialty: "Spesialis Jantung", exp: "12 tahun pengalaman", photo: "/doctor-2.png", rating: 4.8, available: true },
+  { name: "dr. Maya Putri", specialty: "Ahli Gizi", exp: "6 tahun pengalaman", photo: "/doctor-3.png", rating: 4.7, available: false },
+];
+
+const aiInsights = [
+  "Pola tidurmu minggu ini membaik +12%. Pertahankan jam tidur konsisten.",
+  "Asupan air masih 60% dari target — coba minum segelas setiap 2 jam.",
+  "Tekanan darah stabil di kisaran normal. Tetap jaga pola makan rendah garam.",
+];
+
 const recentLogs = [
   { name: "Tekanan darah", amount: "120/80 mmHg", time: "Hari ini", status: "done", bg: "linear-gradient(135deg,#4CAF7D,#34D399)" },
   { name: "Gula darah", amount: "95 mg/dL", time: "Hari ini", status: "done", bg: "linear-gradient(135deg,#3B82F6,#60A5FA)" },
@@ -54,6 +66,16 @@ const dateRange = `${now.getDate() - 4} – ${now.getDate()} ${now.toLocaleDateS
 
 export default function DashboardPage() {
   const [water] = useState(5);
+  const [docIdx, setDocIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollToDoctor = (dir: "prev" | "next") => {
+    const newIdx = dir === "next"
+      ? Math.min(docIdx + 1, doctors.length - 1)
+      : Math.max(docIdx - 1, 0);
+    setDocIdx(newIdx);
+    scrollRef.current?.children[newIdx]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+  };
 
   return (
     <div className="page-body">
@@ -86,20 +108,49 @@ export default function DashboardPage() {
 
         {/* ▸ LEFT COLUMN */}
         <div className="dash-left">
-          {/* Profile Card */}
-          <div className="profile-card">
-            <div className="profile-img">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/profile.png" alt="Dono" />
-            </div>
-            <div className="profile-badge">4+ tahun sehat ✦</div>
-            <div className="profile-info">
-              <div className="profile-name">Dono</div>
-              <div className="profile-role">Pengguna HealthCheck</div>
-              <div className="profile-actions">
-                <button className="profile-action-btn"><Phone size={16} color="#6B7280" /></button>
-                <button className="profile-action-btn"><Mail size={16} color="#6B7280" /></button>
+          {/* Swipeable Doctor Carousel */}
+          <div className="doctor-carousel-wrapper">
+            <div className="doctor-carousel-nav">
+              <span className="doctor-carousel-label">Dokter Tersedia</span>
+              <div className="doctor-carousel-arrows">
+                <button className="doctor-arrow" onClick={() => scrollToDoctor("prev")} disabled={docIdx === 0}>
+                  <ChevronLeft size={14} />
+                </button>
+                <button className="doctor-arrow" onClick={() => scrollToDoctor("next")} disabled={docIdx === doctors.length - 1}>
+                  <ChevronRight size={14} />
+                </button>
               </div>
+            </div>
+            <div className="doctor-carousel" ref={scrollRef}>
+              {doctors.map((doc, i) => (
+                <div key={i} className="profile-card doctor-slide">
+                  <div className="profile-img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={doc.photo} alt={doc.name} />
+                  </div>
+                  <div className="profile-badge">
+                    <Star size={10} fill="#F59E0B" color="#F59E0B" /> {doc.rating} · {doc.specialty}
+                  </div>
+                  <div className="profile-info">
+                    <div className="profile-name">{doc.name}</div>
+                    <div className="profile-role">{doc.exp}</div>
+                    <div className="doctor-avail">
+                      <span className={doc.available ? "dot-online" : "dot-offline"} />
+                      {doc.available ? "Online — Siap konsultasi" : "Offline"}
+                    </div>
+                    <div className="profile-actions">
+                      <button className="profile-action-btn" title="Telepon"><Phone size={16} color="#4CAF7D" /></button>
+                      <button className="profile-action-btn" title="Chat"><MessageCircle size={16} color="#2D6A8F" /></button>
+                      <button className="profile-action-btn" title="Video"><Video size={16} color="#6B7280" /></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="doctor-dots">
+              {doctors.map((_, i) => (
+                <div key={i} className={`doctor-dot ${i === docIdx ? "active" : ""}`} />
+              ))}
             </div>
           </div>
 
@@ -300,33 +351,33 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Skor & Pencapaian */}
-          <div className="salary-card">
-            <div className="salary-row">
-              <span>Skor dasar</span>
-              <strong>82 pts</strong>
-            </div>
-            <div className="salary-row">
-              <span>Bonus olahraga</span>
-              <strong>+8 pts</strong>
-            </div>
-            <div className="salary-row">
-              <span>Bonus tidur</span>
-              <strong>+5 pts</strong>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", flexDirection: "column", alignItems: "flex-end", marginTop: 8 }}>
-              <div className="salary-pct-label">Pencapaian target</div>
-              <div className="salary-pct">99%</div>
-            </div>
-            <div className="salary-take">
-              <div>
-                <div className="salary-take-label">Total skor akhir</div>
-                <div className="salary-icons">
-                  <div className="salary-icon-btn"><Heart size={12} color="white" /></div>
-                  <div className="salary-icon-btn"><Stethoscope size={12} color="white" /></div>
-                </div>
+          {/* AI Insight */}
+          <div className="ai-card">
+            <div className="ai-card-header">
+              <div className="ai-card-icon">
+                <Zap size={16} color="white" />
               </div>
-              <span className="salary-take-value">95 pts</span>
+              <div>
+                <div className="ai-card-label">AI INSIGHT</div>
+                <div className="ai-card-title">Analisis Minggu Ini</div>
+              </div>
+            </div>
+            <div className="ai-card-list">
+              {aiInsights.map((tip, i) => (
+                <div key={i} className="ai-card-item">
+                  <div className="ai-card-bullet">{i + 1}</div>
+                  <div className="ai-card-text">{tip}</div>
+                </div>
+              ))}
+            </div>
+            <div className="ai-card-footer">
+              <div className="ai-card-score">
+                <span className="ai-card-score-label">Skor kesehatan</span>
+                <span className="ai-card-score-value">95 pts</span>
+              </div>
+              <button className="ai-card-btn">
+                Lihat detail <ChevronRight size={12} />
+              </button>
             </div>
           </div>
         </div>
