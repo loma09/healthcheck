@@ -1,53 +1,63 @@
 "use client";
 
-import { Settings, Bell } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Search, Mail, Bell } from "lucide-react";
+
+const tabs = [
+  { label: "Dashboard", href: "/" },
+  { label: "Pemeriksaan", href: "/pemeriksaan" },
+  { label: "Olahraga", href: "/olahraga" },
+  { label: "Nutrisi", href: "/nutrisi" },
+  { label: "Tidur", href: "/tidur" },
+];
 
 export default function Topbar() {
-  return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        padding: "16px 36px",
-        gap: 10,
-        borderBottom: "1px solid var(--color-border)",
-        background: "var(--color-surface)",
-      }}
-    >
-      <button
-        style={{
-          width: 36, height: 36,
-          borderRadius: "50%",
-          background: "var(--color-surface-warm)",
-          border: "1px solid var(--color-border)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-          transition: "background 0.15s",
-          position: "relative",
-        }}
-      >
-        <Bell size={15} color="var(--color-text-2)" />
-        <span style={{
-          position: "absolute", top: 7, right: 7,
-          width: 6, height: 6, borderRadius: "50%",
-          background: "var(--color-coral)",
-          border: "1.5px solid white",
-        }} />
-      </button>
+  const pathname = usePathname();
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-      <button
-        style={{
-          width: 36, height: 36,
-          borderRadius: "50%",
-          background: "var(--color-surface-warm)",
-          border: "1px solid var(--color-border)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-        }}
-      >
-        <Settings size={15} color="var(--color-text-2)" />
-      </button>
+  return (
+    <header className="topbar">
+      <div className="topbar-left">
+        {/* Logo */}
+        <div className="topbar-logo">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1L9.5 5.5L14 4L10.5 8L14 12L9.5 10.5L8 15L6.5 10.5L2 12L5.5 8L2 4L6.5 5.5L8 1Z" fill="white" fillOpacity="0.9" />
+          </svg>
+        </div>
+
+        {/* Nav Tabs */}
+        <nav className="topbar-tabs">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`topbar-tab${isActive(tab.href) ? " active" : ""}`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      <div className="topbar-right">
+        <div className="topbar-search">
+          <Search size={14} color="#9CA3AF" />
+          <input type="text" placeholder="Search .." />
+        </div>
+        <button className="topbar-btn" aria-label="Mail">
+          <Mail size={16} color="#6B7280" strokeWidth={1.8} />
+        </button>
+        <button className="topbar-btn" aria-label="Notifications">
+          <Bell size={16} color="#6B7280" strokeWidth={1.8} />
+          <span className="notif-dot" />
+        </button>
+        <div className="topbar-avatar">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/profile.png" alt="User" />
+        </div>
+      </div>
     </header>
   );
 }

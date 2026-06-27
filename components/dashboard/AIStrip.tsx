@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { Sparkles, ChevronRight } from "lucide-react";
 
 export default function AIStrip() {
   return (
     <div className="ai-card">
-      <div className="ai-icon-wrap">✦</div>
+      <div className="ai-icon-wrap">
+        <Sparkles size={18} color="#fff" strokeWidth={2} />
+      </div>
       <div style={{ flex: 1 }}>
         <p className="ai-label">Insight AI · Hari ini</p>
         <p className="ai-text">
@@ -14,8 +17,7 @@ export default function AIStrip() {
         </p>
       </div>
       <Link href="/insight" className="ai-btn">
-        Lihat semua
-        <span>→</span>
+        Lihat semua <ChevronRight size={14} strokeWidth={2.5} />
       </Link>
     </div>
   );
