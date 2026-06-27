@@ -65,7 +65,6 @@ const dateRange = `${now.getDate() - 4} – ${now.getDate()} ${now.toLocaleDateS
 /* ───── COMPONENT ───── */
 
 export default function DashboardPage() {
-  const [water] = useState(5);
   const [docIdx, setDocIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +73,14 @@ export default function DashboardPage() {
       ? Math.min(docIdx + 1, doctors.length - 1)
       : Math.max(docIdx - 1, 0);
     setDocIdx(newIdx);
-    scrollRef.current?.children[newIdx]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+    if (scrollRef.current) {
+      const slideWidth = scrollRef.current.offsetWidth;
+      scrollRef.current.scrollTo({ left: newIdx * slideWidth, behavior: "smooth" });
+    }
+  };
+
+  const handleNotImplemented = (feature: string) => {
+    alert(`Fitur "${feature}" akan segera hadir. Hubungkan ke backend untuk mengaktifkan.`);
   };
 
   return (
@@ -83,21 +89,16 @@ export default function DashboardPage() {
       {/* ── Header ── */}
       <div className="header-row fade-up fade-up-1">
         <div className="page-header">
-          <div className="page-breadcrumb">
-            <span>Portal</span>
-            <ChevronRight size={12} />
-            <span>Dashboard</span>
-          </div>
           <h1 className="page-title">{greeting}, Dono</h1>
         </div>
         <div className="header-actions">
-          <button className="btn-outline">
+          <button className="btn-outline" onClick={() => handleNotImplemented("Catat data")}>
             <Plus size={13} /> Catat data
           </button>
-          <button className="btn-outline">
+          <button className="btn-outline" onClick={() => handleNotImplemented("Filter tanggal")}>
             <Calendar size={13} /> {dateRange}
           </button>
-          <button className="btn-primary">
+          <button className="btn-primary" onClick={() => handleNotImplemented("Tambah laporan")}>
             <Plus size={13} /> Tambah laporan
           </button>
         </div>
@@ -112,40 +113,54 @@ export default function DashboardPage() {
           <div className="doctor-carousel-wrapper">
             <div className="doctor-carousel-nav">
               <span className="doctor-carousel-label">Dokter Tersedia</span>
-              <div className="doctor-carousel-arrows">
-                <button className="doctor-arrow" onClick={() => scrollToDoctor("prev")} disabled={docIdx === 0}>
-                  <ChevronLeft size={14} />
-                </button>
-                <button className="doctor-arrow" onClick={() => scrollToDoctor("next")} disabled={docIdx === doctors.length - 1}>
-                  <ChevronRight size={14} />
-                </button>
-              </div>
             </div>
-            <div className="doctor-carousel" ref={scrollRef}>
-              {doctors.map((doc, i) => (
-                <div key={i} className="profile-card doctor-slide">
-                  <div className="profile-img">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={doc.photo} alt={doc.name} />
-                  </div>
-                  <div className="profile-badge">
-                    <Star size={10} fill="#F59E0B" color="#F59E0B" /> {doc.rating} · {doc.specialty}
-                  </div>
-                  <div className="profile-info">
-                    <div className="profile-name">{doc.name}</div>
-                    <div className="profile-role">{doc.exp}</div>
-                    <div className="doctor-avail">
-                      <span className={doc.available ? "dot-online" : "dot-offline"} />
-                      {doc.available ? "Online — Siap konsultasi" : "Offline"}
+
+            <div className="doctor-carousel-container">
+              <div className="doctor-carousel" ref={scrollRef}>
+                {doctors.map((doc, i) => (
+                  <div key={i} className="profile-card doctor-slide">
+                    <div className="profile-img">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={doc.photo} alt={doc.name} />
+
+                      {i === docIdx && (
+                        <>
+                          <button
+                            className="doctor-arrow-float left"
+                            onClick={() => scrollToDoctor("prev")}
+                            disabled={docIdx === 0}
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+                          <button
+                            className="doctor-arrow-float right"
+                            onClick={() => scrollToDoctor("next")}
+                            disabled={docIdx === doctors.length - 1}
+                          >
+                            <ChevronRight size={20} />
+                          </button>
+                        </>
+                      )}
                     </div>
-                    <div className="profile-actions">
-                      <button className="profile-action-btn" title="Telepon"><Phone size={16} color="#4CAF7D" /></button>
-                      <button className="profile-action-btn" title="Chat"><MessageCircle size={16} color="#2D6A8F" /></button>
-                      <button className="profile-action-btn" title="Video"><Video size={16} color="#6B7280" /></button>
+                    <div className="profile-badge">
+                      <Star size={10} fill="#F59E0B" color="#F59E0B" /> {doc.rating} · {doc.specialty}
+                    </div>
+                    <div className="profile-info">
+                      <div className="profile-name">{doc.name}</div>
+                      <div className="profile-role">{doc.exp}</div>
+                      <div className="doctor-avail">
+                        <span className={doc.available ? "dot-online" : "dot-offline"} />
+                        {doc.available ? "Online — Siap konsultasi" : "Offline"}
+                      </div>
+                      <div className="profile-actions">
+                        <button className="profile-action-btn" title="Telepon" onClick={() => handleNotImplemented(`Telepon ${doc.name}`)}><Phone size={16} color="#4CAF7D" /></button>
+                        <button className="profile-action-btn" title="Chat" onClick={() => handleNotImplemented(`Chat dengan ${doc.name}`)}><MessageCircle size={16} color="#2D6A8F" /></button>
+                        <button className="profile-action-btn" title="Video" onClick={() => handleNotImplemented(`Video call dengan ${doc.name}`)}><Video size={16} color="#6B7280" /></button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
             <div className="doctor-dots">
               {doctors.map((_, i) => (
@@ -375,7 +390,7 @@ export default function DashboardPage() {
                 <span className="ai-card-score-label">Skor kesehatan</span>
                 <span className="ai-card-score-value">95 pts</span>
               </div>
-              <button className="ai-card-btn">
+              <button className="ai-card-btn" onClick={() => handleNotImplemented("Detail analisis AI")}>
                 Lihat detail <ChevronRight size={12} />
               </button>
             </div>

@@ -65,11 +65,15 @@
 
   /* ===== TOPBAR ===== */
   .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 32px; border-bottom: 1px solid rgba(0,0,0,0.06);
-    background: white;
-    position: sticky; top: 0; z-index: 40;
-  }
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  margin: 16px 20px 0;           /* jarak dari tepi kiri/kanan/atas */
+  border-radius: 18px;            /* bentuk bulat */
+  border: 1px solid rgba(0,0,0,0.06);
+  background: white;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+  position: sticky; top: 16px; z-index: 40;   /* top diisi biar saat nge-stick tetap ada jarak dari atas */
+}
   .topbar-left { display: flex; align-items: center; gap: 16px; flex-wrap: nowrap; min-width: 0; }
   .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .topbar-brand {
@@ -83,7 +87,7 @@
   .topbar-tabs { display: flex; align-items: center; gap: 6px; }
   .topbar-tab {
     padding: 8px 18px; border-radius: 99px; font-size: 13.5px; font-weight: 500;
-    color: #6B7280; border: 1px solid rgba(0,0,0,0.06); background: white;
+    color: #6B7280; border: 3px solid rgba(0,0,0,0.06); background: white;
     transition: all 0.2s; text-decoration: none; display: inline-block;
   }
   .topbar-tab:hover { background: #F4F6F9; color: #1A1D23; }
@@ -164,10 +168,11 @@
     box-shadow: 0 12px 40px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.7);
   }
   .profile-img {
-    width: 100%; height: 240px;
-    background: linear-gradient(135deg, #B2DFCC, #89C4E1);
-    overflow: hidden;
-  }
+  width: 100%; height: 240px;
+  background: linear-gradient(135deg, #B2DFCC, #89C4E1);
+  overflow: hidden;
+  position: relative; /* baru ditambahkan */
+}
   .profile-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .profile-badge {
     position: absolute; top: 200px; left: 16px;
@@ -388,14 +393,40 @@
   .doctor-carousel-wrapper { position: relative; display: flex; flex-direction: column; gap: 12px; }
   .doctor-carousel-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
   .doctor-carousel-label { font-size: 13px; font-weight: 700; color: #1A1D23; }
-  .doctor-carousel-arrows { display: flex; gap: 6px; }
-  .doctor-arrow {
-    width: 24px; height: 24px; border-radius: 6px; background: white; border: 1px solid rgba(0,0,0,0.08);
-    display: flex; align-items: center; justify-content: center; cursor: pointer; color: #6B7280;
-    transition: all 0.2s;
+
+  /* Hover Floating Arrows Container */
+  .doctor-carousel-container { position: relative; width: 100%; display: flex; align-items: center; }
+
+  /* Floating individual arrow buttons */
+  .doctor-arrow-float {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #4B5563; z-index: 10;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .doctor-arrow:hover:not(:disabled) { background: #f9fafb; color: #1A1D23; }
-  .doctor-arrow:disabled { opacity: 0.4; cursor: not-allowed; }
+  .doctor-arrow-float.left { left: 8px; }
+  .doctor-arrow-float.right { right: 8px; }
+  
+  /* Show arrows on hover */
+
+.profile-card:hover .doctor-arrow-float:not(:disabled) {
+  opacity: 1; pointer-events: auto;
+}
+  
+  .doctor-arrow-float:not(:disabled):hover {
+    background: linear-gradient(135deg, #4CAF7D, #2D9E6B); color: white;
+    box-shadow: 0 6px 16px rgba(76,175,125,0.4);
+    transform: translateY(-50%) scale(1.1);
+  }
+  .doctor-arrow-float:not(:disabled):active {
+    transform: translateY(-50%) scale(0.95);
+  }
+  .doctor-arrow-float:disabled { display: none; }
+
   .doctor-carousel {
     display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
     -webkit-overflow-scrolling: touch; gap: 16px; border-radius: 24px;
@@ -407,7 +438,7 @@
   .dot-offline { width: 8px; height: 8px; border-radius: 50%; background: #9CA3AF; }
   .doctor-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
   .doctor-dot { width: 6px; height: 6px; border-radius: 50%; background: #E5E7EB; transition: all 0.3s; }
-  .doctor-dot.active { background: #4CAF7D; width: 12px; border-radius: 4px; }
+  .doctor-dot.active { background: #4CAF7D; width: 18px; border-radius: 4px; }
 
   /* ===== AI INSIGHT CARD ===== */
   .ai-card {
@@ -526,7 +557,12 @@
 /* ===== RESPONSIVE — MOBILE ===== */
 @media (max-width: 768px) {
   /* Topbar */
-  .topbar { padding: 10px 16px; position: relative; }
+  .topbar { 
+    margin: 10px 12px 0; 
+    padding: 8px 14px; 
+    border-radius: 16px; 
+    top: 10px
+  }
   .topbar-tabs { display: none !important; }
   .topbar-search, .topbar-btn { display: none !important; }
   .topbar-hamburger { display: flex !important; }
@@ -564,6 +600,7 @@
 
   /* Doctor Carousel */
   .doctor-carousel-label { font-size: 12px; }
+  .doctor-arrow-float { display: none !important; } /* Hide overlay arrows on mobile, rely on swipe */
 
   /* Stat Cards */
   .stat-mini { padding: 16px; }
