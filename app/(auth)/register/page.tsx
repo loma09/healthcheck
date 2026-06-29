@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Shield, Eye, EyeOff, Mail, Lock, User, ArrowRight, Activity, CheckCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { signUp } from '@/lib/auth';
 
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
@@ -10,6 +12,9 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [success, setSuccess] = useState('');
+  const router = useRouter();
+  const [error, setError] = useState('');
 
   const handleChange = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(p => ({ ...p, [k]: e.target.value }));
@@ -28,15 +33,29 @@ export default function RegisterPage() {
   const strengthColor = ['', '#EF4444', '#F59E0B', '#4CAF7D', '#059669'][strength];
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.password !== form.confirm) return alert('Password tidak cocok!');
-    if (!agreed) return alert('Harap setujui syarat & ketentuan terlebih dahulu.');
-    setLoading(true);
-    // TODO: integrate with backend
-    await new Promise(r => setTimeout(r, 1500));
+  e.preventDefault();
+  if (form.password !== form.confirm) return setError('Password tidak cocok.');
+  if (!agreed) return setError('Harap setujui syarat & ketentuan.');
+  
+  setLoading(true);
+  setError('');
+  setSuccess('');
+
+  try {
+    const data = await signUp(form.name, form.email, form.password);
+    if (data.session) {
+      // Auto-confirm is ON — user is logged in, go to dashboard
+      router.push('/dashboard');
+    } else {
+      // Email confirmation required
+      setSuccess(`Akun berhasil dibuat! Cek email ${form.email} untuk konfirmasi, lalu login.`);
+    }
+  } catch (err: any) {
+    setError(err.message || 'Pendaftaran gagal. Coba lagi.');
+  } finally {
     setLoading(false);
-    alert('Akun berhasil dibuat! (Integrasi backend akan segera hadir)');
-  };
+  }
+};
 
   return (
     <div className="auth-root">
@@ -172,6 +191,9 @@ export default function RegisterPage() {
                 Saya setuju dengan <a href="#" className="auth-switch-link">Syarat & Ketentuan</a> dan <a href="#" className="auth-switch-link">Kebijakan Privasi</a>
               </span>
             </label>
+
+            {success && <p className="auth-error" style={{ textAlign: 'center', marginBottom: 0, color: '#4CAF7D', border: '1px solid #4CAF7D', background: 'rgba(76,175,125,0.1)' }}>{success}</p>}
+            {error && <p className="auth-error" style={{ textAlign: 'center', marginBottom: 0 }}>{error}</p>}
 
             <button type="submit" className={`auth-submit${loading ? ' loading' : ''}`} disabled={loading}>
               {loading ? (

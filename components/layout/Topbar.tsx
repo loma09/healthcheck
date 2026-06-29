@@ -2,38 +2,43 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Search, Mail, Bell, Menu, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, Mail, Bell, Menu, X, LogOut, UserCog } from "lucide-react";
+import { signOut } from "@/lib/supabase";
 
 const tabs = [
-  { label: "Dashboard", href: "/" },
-  { label: "Pemeriksaan", href: "/pemeriksaan" },
-  { label: "Olahraga", href: "/olahraga" },
-  { label: "Nutrisi", href: "/nutrisi" },
-  { label: "Tidur", href: "/tidur" },
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Pemeriksaan", href: "/dashboard/pemeriksaan" },
+  { label: "Olahraga", href: "/dashboard/olahraga" },
+  { label: "Nutrisi", href: "/dashboard/nutrisi" },
+  { label: "Tidur", href: "/dashboard/tidur" },
 ];
 
 export default function Topbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+    href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/login");
+  };
 
   return (
     <header className="topbar">
       <div className="topbar-left">
-        {/* Logo */}
-        <Link href="/" className="topbar-brand">
+        <Link href="/dashboard" className="topbar-brand">
           <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Shield outline */}
             <path d="M32 6C32 6 14 14 14 14V32C14 46 32 58 32 58C32 58 50 46 50 32V14L32 6Z" stroke="#3AAFA9" strokeWidth="4" strokeLinejoin="round" fill="none" />
-            {/* Checkmark */}
             <path d="M22 32L29 39L42 24" stroke="#3AAFA9" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
           <span className="topbar-brand-text">HealthCheck</span>
         </Link>
 
-        {/* Nav Tabs - Desktop */}
         <nav className="topbar-tabs">
           {tabs.map((tab) => (
             <Link
@@ -59,12 +64,42 @@ export default function Topbar() {
           <Bell size={16} color="#6B7280" strokeWidth={1.8} />
           <span className="notif-dot" />
         </button>
-        <div className="topbar-avatar">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/profile.png" alt="User" />
+
+        {/* Avatar + Dropdown */}
+        <div className="topbar-avatar-wrapper">
+          <div
+            className="topbar-avatar"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/profile.png" alt="User" />
+          </div>
+
+          {dropdownOpen && (
+            <>
+              <div
+                className="avatar-overlay"
+                onClick={() => setDropdownOpen(false)}
+              />
+              <div className="avatar-dropdown">
+                <Link
+                  href="/dashboard/profil"
+                  className="avatar-dropdown-item"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <UserCog size={14} /> Edit Profil
+                </Link>
+                <button
+                  className="avatar-dropdown-item danger"
+                  onClick={handleLogout}
+                >
+                  <LogOut size={14} /> Logout
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Hamburger - Mobile Only */}
         <button
           className="topbar-hamburger"
           aria-label="Menu"
@@ -74,7 +109,6 @@ export default function Topbar() {
         </button>
       </div>
 
-      {/* Mobile Drawer */}
       {mobileOpen && (
         <nav className="mobile-drawer">
           {tabs.map((tab) => (
@@ -90,6 +124,14 @@ export default function Topbar() {
           <div className="mobile-drawer-search">
             <Search size={14} color="#9CA3AF" />
             <input type="text" placeholder="Cari..." />
+          </div>
+          <div className="mobile-drawer-actions">
+            <Link href="/dashboard/profil" className="mobile-drawer-link" onClick={() => setMobileOpen(false)}>
+              <UserCog size={14} /> Edit Profil
+            </Link>
+            <button className="mobile-drawer-link danger" onClick={handleLogout}>
+              <LogOut size={14} /> Logout
+            </button>
           </div>
         </nav>
       )}

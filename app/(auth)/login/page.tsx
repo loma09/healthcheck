@@ -3,21 +3,31 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Shield, Eye, EyeOff, Mail, Lock, ArrowRight, Activity, Moon, Droplets, TrendingUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { signIn } from '@/lib/auth';
 
 export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // TODO: integrate NextAuth
-    await new Promise(r => setTimeout(r, 1500));
+  e.preventDefault();
+  setLoading(true);
+  setError('');
+
+  try {
+    await signIn(email, password);
+    router.push('/dashboard');
+  } catch (err: any) {
+    setError(err.message || 'Login gagal. Periksa email dan password.');
+  } finally {
     setLoading(false);
-    alert('Login berhasil! (Integrasi backend akan segera hadir)');
-  };
+  }
+};
 
   return (
     <div className="auth-root">
@@ -103,6 +113,8 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {error && <p className="auth-error" style={{ textAlign: 'center', marginBottom: 0 }}>{error}</p>}
 
             <button type="submit" className={`auth-submit${loading ? ' loading' : ''}`} disabled={loading}>
               {loading ? (
