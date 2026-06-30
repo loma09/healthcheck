@@ -45,3 +45,15 @@ export async function getSession() {
   const { data: { session } } = await supabase.auth.getSession();
   return session;
 }
+
+export async function signInWithGoogle() {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
+  if (error) throw error;
+  return data;
+}

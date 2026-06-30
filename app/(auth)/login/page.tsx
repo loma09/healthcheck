@@ -1,18 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { Shield, Eye, EyeOff, Mail, Lock, ArrowRight, Activity, Moon, Droplets, TrendingUp } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { signIn } from '@/lib/auth';
+import { Shield, Eye, EyeOff, Mail, Lock, ArrowRight, Activity, Moon, Droplets, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn, signInWithGoogle } from '@/lib/supabase';
 
-export default function LoginPage() {
+function LoginForm() {
   const [showPass, setShowPass] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get('registered') === 'true';
   const [error, setError] = useState('');
+
+  const handleGoogleLogin = async () => {
+  try {
+    await signInWithGoogle();
+  } catch (err: any) {
+    setError(err.message);
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -77,6 +87,29 @@ export default function LoginPage() {
             <p className="auth-form-sub">Masuk untuk melanjutkan memantau kesehatanmu</p>
           </div>
 
+          {justRegistered && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 10,
+              background: 'rgba(76,175,125,0.1)',
+              border: '1px solid #4CAF7D',
+              borderRadius: 10,
+              padding: '12px 14px',
+              marginBottom: 4,
+            }}>
+              <CheckCircle2 size={18} color="#4CAF7D" style={{ marginTop: 1, flexShrink: 0 }} />
+              <div>
+                <p style={{ color: '#4CAF7D', fontWeight: 600, fontSize: 14, margin: 0 }}>
+                  Akun berhasil dibuat!
+                </p>
+                <p style={{ color: '#86EFAC', fontSize: 13, margin: '2px 0 0' }}>
+                  Silakan masuk menggunakan email dan password yang sudah didaftarkan.
+                </p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
               <label className="auth-label">Email</label>
@@ -127,7 +160,7 @@ export default function LoginPage() {
 
           <div className="auth-divider"><span>atau</span></div>
 
-          <button className="auth-google-btn" type="button">
+          <button className="auth-google-btn" type="button" onClick={handleGoogleLogin}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
               <path d="M9 18c2.43 0 4.467-.806 5.956-2.18L12.048 13.56c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
@@ -143,5 +176,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -146,18 +146,18 @@ const dateRange = `${now.getDate() - 4} – ${now.getDate()} ${now.toLocaleDateS
 export default function DashboardPage() {
   const [userName, setUserName] = useState("...");
   const [docIdx, setDocIdx] = useState(0);
-const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-const scrollToDoctor = (dir: "prev" | "next") => {
-  const newIdx = dir === "next"
-    ? Math.min(docIdx + 1, doctors.length - 1)
-    : Math.max(docIdx - 1, 0);
-  setDocIdx(newIdx);
-  if (scrollRef.current) {
-    const slideWidth = scrollRef.current.offsetWidth;
-    scrollRef.current.scrollTo({ left: newIdx * slideWidth, behavior: "smooth" });
-  }
-};
+  const scrollToDoctor = (dir: "prev" | "next") => {
+    const newIdx = dir === "next"
+      ? Math.min(docIdx + 1, doctors.length - 1)
+      : Math.max(docIdx - 1, 0);
+    setDocIdx(newIdx);
+    if (scrollRef.current) {
+      const slideWidth = scrollRef.current.offsetWidth;
+      scrollRef.current.scrollTo({ left: newIdx * slideWidth, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     const supabase = createClient();

@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -25,12 +25,18 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Refresh session — wajib dipanggil di middleware
+  // Jangan gunakan getSession() di sini karena tidak aman dari server side
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
+  // Proteksi route: jika belum login, redirect ke /login
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // Jika sudah login, jangan biarkan akses halaman auth
   if (
     user &&
     (request.nextUrl.pathname === '/login' ||
@@ -43,5 +49,14 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register'],
+  matcher: [
+    /*
+     * Match semua request path KECUALI:
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico, sitemap.xml, robots.txt
+     * - file publik (gambar dll)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
