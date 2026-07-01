@@ -32,6 +32,7 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabase";
 
+
 /* ───── DATA ───── */
 
 // Dot matrix: 7 rows x 14 cols, values 0-3 (0=light, 1=mid, 2=active, 3=dark)
@@ -91,6 +92,7 @@ const doctors = [
   },
 ];
 
+
 const aiInsights = [
   "Pola tidurmu minggu ini membaik +12%. Pertahankan jam tidur konsisten.",
   "Asupan air masih 60% dari target — coba minum segelas setiap 2 jam.",
@@ -147,6 +149,12 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState("...");
   const [docIdx, setDocIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [profile, setProfile] = useState<{ date_of_birth: string; height_cm: number } | null>(null);
+  const [weight, setWeight] = useState<number | null>(null);
+  const getAge = (dob: string) => {
+    const diff = Date.now() - new Date(dob).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+};
 
   const scrollToDoctor = (dir: "prev" | "next") => {
     const newIdx = dir === "next"
@@ -160,12 +168,33 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      const name = data.user?.user_metadata?.name || data.user?.email || "User";
-      setUserName(name);
-    });
-  }, []);
+  const supabase = createClient();
+  supabase.auth.getUser().then(async ({ data }) => {
+    const name = data.user?.user_metadata?.name || data.user?.email || 'User';
+    setUserName(name);
+
+    if (data.user) {
+      // Ambil profil
+      const { data: prof } = await supabase
+        .from('users')
+        .select('date_of_birth, height_cm')
+        .eq('id', data.user.id)
+        .single();
+      setProfile(prof);
+
+      // Ambil berat terbaru
+      const { data: hc } = await supabase
+        .from('health_checks')
+        .select('weight_kg')
+        .eq('user_id', data.user.id)
+        .not('weight_kg', 'is', null)
+        .order('checked_at', { ascending: false })
+        .limit(1)
+        .single();
+      setWeight(hc?.weight_kg ?? null);
+    }
+  });
+}, []);
 
   const handleNotImplemented = (feature: string) => {
     alert(
@@ -415,33 +444,35 @@ export default function DashboardPage() {
 
             {/* Teal Card — Target Olahraga & Nutrisi */}
             <div className="team-card">
-              <div className="team-card-top">
-                <div>
-                  <div className="team-trend">
-                    +2.6% <Info size={10} />
-                  </div>
-                  <div className="team-pct">151%</div>
-                  <div className="team-label">Target olahraga</div>
-                </div>
-                <div className="team-top-badge">
-                  <User size={16} color="white" />
-                </div>
-              </div>
-              <div className="team-sub">
-                <div className="team-sub-icon">
-                  <Globe size={14} color="white" />
-                </div>
-                <div>
-                  <div className="team-sub-trend">
-                    +2.6% <Info size={9} />
-                  </div>
-                  <div className="team-sub-pct">38%</div>
-                  <div className="team-sub-label">Nutrisi tercapai</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+  <div className="team-card-top">
+    <div>
+      <div className="team-trend">Umur</div>
+      <div className="team-pct">
+        {profile?.date_of_birth ? `${getAge(profile.date_of_birth)} th` : '—'}
+      </div>
+      <div className="team-label">Tahun</div>
+    </div>
+    <div className="team-top-badge">
+      <User size={16} color="white" />
+    </div>
+  </div>
+  <div className="team-sub">
+    <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="team-sub-trend">Tinggi</div>
+        <div className="team-sub-pct">{profile?.height_cm ?? '—'}</div>
+        <div className="team-sub-label">cm</div>
+      </div>
+      <div style={{ width: 1, background: 'rgba(255,255,255,0.2)' }} />
+      <div style={{ textAlign: 'center' }}>
+        <div className="team-sub-trend">Berat</div>
+        <div className="team-sub-pct">{weight ?? '—'}</div>
+        <div className="team-sub-label">kg</div>
+      </div>
+    </div>
+  </div>
+</div>
+          </div>{/* end center-top */}
           {/* Bottom row: Donut + Recruitment */}
           <div className="center-bottom">
             {/* Donut Card — Distribusi Kesehatan */}

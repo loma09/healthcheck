@@ -31,6 +31,18 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Cek apakah user sudah onboarding
+if (user && !request.nextUrl.pathname.startsWith('/onboarding')) {
+  const { data: profile } = await supabase
+    .from('users')
+    .select('is_onboarded')
+    .eq('id', user.id)
+    .single();
+
+  if (profile && !profile.is_onboarded) {
+    return NextResponse.redirect(new URL('/onboarding', request.url));
+  }
+}
   // Proteksi route: jika belum login, redirect ke /login
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url));
