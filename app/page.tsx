@@ -7,6 +7,7 @@ import {
   TrendingUp, ChevronRight, Star, Heart, Zap, CheckCircle
 } from 'lucide-react';
 
+
 /* ── Animated counter hook ── */
 function useCountUp(target: number, suffix = '', duration = 1800) {
   const ref = useRef<HTMLSpanElement>(null);

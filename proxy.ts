@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -25,35 +25,28 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session — wajib dipanggil di middleware
-  // Jangan gunakan getSession() di sini karena tidak aman dari server side
+  // Gunakan getSession() — baca dari JWT di cookie, TANPA network call ke Supabase.
+  // getUser() membuat network call yang bisa gagal (fetch failed) dan menyebabkan
+  // redirect ke /login meski user sudah login.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  // Cek apakah user sudah onboarding
-if (user && !request.nextUrl.pathname.startsWith('/onboarding')) {
-  const { data: profile } = await supabase
-    .from('users')
-    .select('is_onboarded')
-    .eq('id', user.id)
-    .single();
+  const user = session?.user ?? null;
+  const { pathname } = request.nextUrl;
 
-  if (profile && !profile.is_onboarded) {
-    return NextResponse.redirect(new URL('/onboarding', request.url));
+  // Proteksi route dashboard: jika belum login, redirect ke /login
+  if (!user && pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
-}
-  // Proteksi route: jika belum login, redirect ke /login
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+
+  // Proteksi halaman profil
+  if (!user && pathname.startsWith('/profile')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Jika sudah login, jangan biarkan akses halaman auth
-  if (
-    user &&
-    (request.nextUrl.pathname === '/login' ||
-      request.nextUrl.pathname === '/register')
-  ) {
+  if (user && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
@@ -66,9 +59,9 @@ export const config = {
      * Match semua request path KECUALI:
      * - _next/static (static files)
      * - _next/image (image optimization)
-     * - favicon.ico, sitemap.xml, robots.txt
-     * - file publik (gambar dll)
+     * - favicon.ico, sitemap.xml, robots.txt, manifest
+     * - file publik (gambar, icon, dll)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

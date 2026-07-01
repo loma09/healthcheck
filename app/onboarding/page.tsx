@@ -36,7 +36,12 @@ export default function OnboardingPage() {
     setForm(p => ({ ...p, [key]: val }));
 
   const canNext = () => {
-    if (step === 0) return form.gender && form.date_of_birth;
+    if (step === 0) {
+      if (!form.gender || !form.date_of_birth) return false;
+      const dob = new Date(form.date_of_birth).getTime();
+      const today = new Date().getTime();
+      return dob <= today;
+    }
     if (step === 1) return form.height_cm && form.weight_kg;
     if (step === 2) return form.target_glasses && form.activity_level;
     return false;
@@ -49,6 +54,9 @@ export default function OnboardingPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Tidak terautentikasi');
+
+      const today = new Date().toISOString().split('T')[0]; // format: YYYY-MM-DD
+
 
       // Update users table
       const { error: userErr } = await supabase

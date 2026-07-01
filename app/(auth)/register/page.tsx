@@ -56,7 +56,12 @@ export default function RegisterPage() {
       await signOut();
       router.push('/login?registered=true');
     } catch (err: any) {
-      setError(err.message || 'Pendaftaran gagal. Coba lagi.');
+      const msg = err.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch')) {
+        setError('Tidak dapat terhubung ke server. Periksa koneksi internet kamu, atau coba lagi beberapa saat.');
+      } else {
+        setError(msg || 'Pendaftaran gagal. Coba lagi.');
+      }
     } finally {
       setLoading(false);
     }

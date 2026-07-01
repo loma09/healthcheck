@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Mail, Bell, Menu, X, LogOut, UserCog } from "lucide-react";
 import { signOut } from "@/lib/supabase";
+import { useUser } from "@/lib/user-context";
 
 const tabs = [
   { label: "Dashboard", href: "/dashboard" },
@@ -17,12 +18,19 @@ const tabs = [
 export default function Topbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { profile } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const avatar = profile?.avatar_url ?? null;
+  const initials = profile?.name
+    ? profile.name.trim().split(/\s+/).map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : profile?.email
+    ? profile.email[0].toUpperCase()
+    : 'U';
+
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
-
   const handleLogout = async () => {
     await signOut();
     router.push("/login");
@@ -67,12 +75,11 @@ export default function Topbar() {
 
         {/* Avatar + Dropdown */}
         <div className="topbar-avatar-wrapper">
-          <div
-            className="topbar-avatar"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/profile.png" alt="User" />
+          <div className="topbar-avatar" onClick={() => setDropdownOpen(!dropdownOpen)}>
+            {avatar
+              ? <img src={avatar} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>{initials}</span>
+            }
           </div>
 
           {dropdownOpen && (
@@ -83,7 +90,7 @@ export default function Topbar() {
               />
               <div className="avatar-dropdown">
                 <Link
-                  href="/dashboard/profil"
+                  href="/profile"
                   className="avatar-dropdown-item"
                   onClick={() => setDropdownOpen(false)}
                 >
@@ -126,7 +133,7 @@ export default function Topbar() {
             <input type="text" placeholder="Cari..." />
           </div>
           <div className="mobile-drawer-actions">
-            <Link href="/dashboard/profil" className="mobile-drawer-link" onClick={() => setMobileOpen(false)}>
+            <Link href="/profile" className="mobile-drawer-link" onClick={() => setMobileOpen(false)}>
               <UserCog size={14} /> Edit Profil
             </Link>
             <button className="mobile-drawer-link danger" onClick={handleLogout}>

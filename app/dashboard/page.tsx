@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   Heart,
   TrendingUp,
@@ -30,8 +30,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { createClient } from "@/lib/supabase";
-
+import { useUser } from "@/lib/user-context";
 
 /* ───── DATA ───── */
 
@@ -146,15 +145,15 @@ const dateRange = `${now.getDate() - 4} – ${now.getDate()} ${now.toLocaleDateS
 /* ───── COMPONENT ───── */
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState("...");
+  const { profile } = useUser();
+  const userName = profile?.name || profile?.email || '...';
+  const weight = profile?.weight_kg ?? null;
   const [docIdx, setDocIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [profile, setProfile] = useState<{ date_of_birth: string; height_cm: number } | null>(null);
-  const [weight, setWeight] = useState<number | null>(null);
   const getAge = (dob: string) => {
     const diff = Date.now() - new Date(dob).getTime();
-    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-};
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)));
+  };
 
   const scrollToDoctor = (dir: "prev" | "next") => {
     const newIdx = dir === "next"
@@ -167,34 +166,6 @@ export default function DashboardPage() {
     }
   };
 
-  useEffect(() => {
-  const supabase = createClient();
-  supabase.auth.getUser().then(async ({ data }) => {
-    const name = data.user?.user_metadata?.name || data.user?.email || 'User';
-    setUserName(name);
-
-    if (data.user) {
-      // Ambil profil
-      const { data: prof } = await supabase
-        .from('users')
-        .select('date_of_birth, height_cm')
-        .eq('id', data.user.id)
-        .single();
-      setProfile(prof);
-
-      // Ambil berat terbaru
-      const { data: hc } = await supabase
-        .from('health_checks')
-        .select('weight_kg')
-        .eq('user_id', data.user.id)
-        .not('weight_kg', 'is', null)
-        .order('checked_at', { ascending: false })
-        .limit(1)
-        .single();
-      setWeight(hc?.weight_kg ?? null);
-    }
-  });
-}, []);
 
   const handleNotImplemented = (feature: string) => {
     alert(
