@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Shield, Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signUp, signOut, signInWithGoogle } from '@/lib/supabase';
+import LegalModal from '@/components/ui/LegalModal';
 
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
@@ -15,6 +16,13 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState('');
   const router = useRouter();
   const [error, setError] = useState('');
+  const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | null>(null);
+  // Track dokumen yang sudah dibaca
+  const [readDocs, setReadDocs] = useState<{ terms: boolean; privacy: boolean }>({
+    terms: false,
+    privacy: false,
+  });
+  const bothRead = readDocs.terms && readDocs.privacy;
 
   const handleGoogleRegister = async () => {
   try {
@@ -195,12 +203,52 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <label className="auth-checkbox-wrap">
-              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="auth-checkbox" />
+            <label
+              className="auth-checkbox-wrap"
+              style={{ opacity: bothRead ? 1 : 0.5, cursor: bothRead ? 'pointer' : 'not-allowed' }}
+              title={bothRead ? '' : 'Baca Syarat & Ketentuan dan Kebijakan Privasi terlebih dahulu'}
+            >
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={e => bothRead && setAgreed(e.target.checked)}
+                className="auth-checkbox"
+                disabled={!bothRead}
+                style={{ cursor: bothRead ? 'pointer' : 'not-allowed' }}
+              />
               <span className="auth-checkbox-label">
-                Saya setuju dengan <a href="#" className="auth-switch-link">Syarat & Ketentuan</a> dan <a href="#" className="auth-switch-link">Kebijakan Privasi</a>
+                Saya setuju dengan{' '}
+                <button
+                  type="button"
+                  onClick={() => setLegalModal('terms')}
+                  className="auth-switch-link"
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit',
+                    color: readDocs.terms ? '#16a34a' : undefined,
+                    fontWeight: readDocs.terms ? 700 : undefined,
+                    textDecoration: 'none',
+                  }}
+                >
+                  {readDocs.terms ? 'Syarat & Ketentuan' : 'Syarat & Ketentuan'}
+                </button>
+                {' '}dan{' '}
+                <button
+                  type="button"
+                  onClick={() => setLegalModal('privacy')}
+                  className="auth-switch-link"
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit',
+                    color: readDocs.privacy ? '#16a34a' : undefined,
+                    fontWeight: readDocs.privacy ? 700 : undefined,
+                    textDecoration: 'none',
+                  }}
+                >
+                  {readDocs.privacy ? 'Kebijakan Privasi' : 'Kebijakan Privasi'}
+                </button>
               </span>
             </label>
+
+            
 
             {success && <p className="auth-error" style={{ textAlign: 'center', marginBottom: 0, color: '#4CAF7D', border: '1px solid #4CAF7D', background: 'rgba(76,175,125,0.1)' }}>{success}</p>}
             {error && <p className="auth-error" style={{ textAlign: 'center', marginBottom: 0 }}>{error}</p>}
@@ -231,6 +279,15 @@ export default function RegisterPage() {
           </p>
         </div>
       </div>
+
+      {/* Legal Modals */}
+      {legalModal && (
+        <LegalModal
+          type={legalModal}
+          onClose={() => setLegalModal(null)}
+          onRead={() => setReadDocs(prev => ({ ...prev, [legalModal]: true }))}
+        />
+      )}
     </div>
   );
 }
