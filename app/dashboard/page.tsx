@@ -70,24 +70,18 @@ const doctors = [
     specialty: "Dokter Umum",
     exp: "8 tahun pengalaman",
     photo: "/doctor-1.png",
-    rating: 4.9,
-    available: true,
   },
   {
     name: "dr. Budi Hartono",
     specialty: "Spesialis Jantung",
     exp: "12 tahun pengalaman",
     photo: "/doctor-2.png",
-    rating: 4.8,
-    available: true,
   },
   {
     name: "dr. Maya Putri",
     specialty: "Ahli Gizi",
     exp: "6 tahun pengalaman",
     photo: "/doctor-3.png",
-    rating: 4.7,
-    available: false,
   },
 ];
 
@@ -176,33 +170,6 @@ export default function DashboardPage() {
   return (
     <div className="page-body">
       {/* ── Header ── */}
-      <div className="header-row fade-up fade-up-1">
-        <div className="page-header">
-          <h1 className="page-title">
-            {greeting}, {userName}
-          </h1>
-        </div>
-        <div className="header-actions">
-          <button
-            className="btn-outline"
-            onClick={() => handleNotImplemented("Catat data")}
-          >
-            <Plus size={13} /> Catat data
-          </button>
-          <button
-            className="btn-outline"
-            onClick={() => handleNotImplemented("Filter tanggal")}
-          >
-            <Calendar size={13} /> {dateRange}
-          </button>
-          <button
-            className="btn-primary"
-            onClick={() => handleNotImplemented("Tambah laporan")}
-          >
-            <Plus size={13} /> Tambah laporan
-          </button>
-        </div>
-      </div>
 
       {/* ── Main 3-column Grid ── */}
       <div className="dash-grid fade-up fade-up-2">
@@ -242,20 +209,11 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="profile-badge">
-                      <Star size={10} fill="#F59E0B" color="#F59E0B" />{" "}
-                      {doc.rating} · {doc.specialty}
+                      {doc.specialty}
                     </div>
                     <div className="profile-info">
                       <div className="profile-name">{doc.name}</div>
                       <div className="profile-role">{doc.exp}</div>
-                      <div className="doctor-avail">
-                        <span
-                          className={
-                            doc.available ? "dot-online" : "dot-offline"
-                          }
-                        />
-                        {doc.available ? "Online — Siap konsultasi" : "Offline"}
-                      </div>
                       <div className="profile-actions">
                         <button
                           className="profile-action-btn"
